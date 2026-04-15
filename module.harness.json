@@ -1,0 +1,44 @@
+{
+  "name": "marketing",
+  "version": "1.0.0",
+  "description": "Marketing automation — campaigns, lead tracking, follow-ups, review requests",
+  "category": "social",
+  "entities": {
+    "produces": [],
+    "consumes": ["client", "content-asset", "social-post"],
+    "extends": {}
+  },
+  "tools": [
+    { "name": "create-campaign", "description": "Assemble content assets into a marketing campaign", "permissions": ["content-asset:read", "social-post:read"] },
+    { "name": "track-leads", "description": "Log a new lead from social media or web", "permissions": ["client:write"] },
+    { "name": "send-followup", "description": "Send a follow-up message to a lead or client", "permissions": ["client:read"] },
+    { "name": "request-review", "description": "Send a review request to a completed-job client", "permissions": ["client:read"] }
+  ],
+  "hooks": [
+    { "event": "PostClientCreated", "action": "add-to-drip-campaign", "type": "post" },
+    { "event": "JobCompleted", "action": "schedule-review-request", "type": "post" }
+  ],
+  "dependencies": ["content-engine"],
+  "externalServices": [],
+  "config": {
+    "drip_campaign_enabled": { "type": "boolean", "default": true },
+    "followup_delay_days": { "type": "number", "default": 3 },
+    "review_request_after_days": { "type": "number", "default": 7 },
+    "review_platforms": { "type": "string", "default": "google,yelp" }
+  },
+  "agents": [],
+  "cron": [
+    {
+      "name": "daily-lead-followup",
+      "schedule": "0 8 * * 1-5",
+      "action": "check-pending-leads",
+      "description": "Check for leads needing follow-up on weekday mornings"
+    },
+    {
+      "name": "weekly-review-requests",
+      "schedule": "0 9 * * 1",
+      "action": "send-review-requests",
+      "description": "Send review requests for recently completed jobs"
+    }
+  ]
+}
